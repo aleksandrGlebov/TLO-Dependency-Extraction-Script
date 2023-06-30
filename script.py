@@ -2,6 +2,13 @@ import os
 import json
 import subprocess
 import shutil
+import chardet
+
+# Function to detect file encoding
+def detect_file_encoding(file_path):
+    with open(file_path, 'rb') as file:
+        result = chardet.detect(file.read())
+        return result['encoding']
 
 # Directory where the files are located
 directory = 'Sample_JSON_30May23'
@@ -9,8 +16,12 @@ directory = 'Sample_JSON_30May23'
 # Request the input file name from the user
 input_file_name = input("Enter the name of the input file (without .json extension): ")
 input_file_path = os.path.join(directory, input_file_name + '.json')
+
+# Detect the encoding of the file
+encoding = detect_file_encoding(input_file_path)
+
 try:
-    with open(input_file_path, 'r') as file:
+    with open(input_file_path, 'r', encoding=encoding) as file:
         data = json.load(file)
 except FileNotFoundError:
     print(f"File {input_file_path} not found.")
@@ -44,7 +55,7 @@ for file_name in updated_ids:
     
     # Opening and loading JSON file
     try:
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding=encoding) as file:
             file_data = json.load(file)
             
             # Check if file has prefix R_ and process prodSpecCharValueUse
@@ -77,7 +88,7 @@ unique_product_spec_ids = set()
 
 # Reading additional productSpecification from the specified file
 try:
-    with open(input_file_path, "r") as currentfile:
+    with open(input_file_path, "r", encoding=encoding) as currentfile:
         current_file_data = json.load(currentfile)
         currentdata = current_file_data["productOffering"].get("productSpecification", [])
 except FileNotFoundError:
@@ -95,7 +106,7 @@ for file_name in updated_ids:
 
     # Opening and loading JSON file
     try:
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding=encoding) as file:
             file_data = json.load(file)
 
             # Getting the productSpecification array and adding additional data
@@ -125,8 +136,8 @@ shutil.copy(input_file_path, os.path.join(directory, input_file_name + '_copy.js
 
 # Save the modified data to the copy file
 copy_file_path = os.path.join(input_file_name + '_copy.json')
-with open(copy_file_path, 'w') as file:
-    json.dump(data, file, indent=2)
+with open(copy_file_path, 'w', encoding=encoding) as file:
+    json.dump(data, file, indent=2, ensure_ascii=False)
 
 # Writing unique productSpecification IDs to a new file
 with open("product_spec_ids.txt", "w") as output_file:
