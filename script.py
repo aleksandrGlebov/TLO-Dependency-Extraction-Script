@@ -135,3 +135,5 @@ with open("product_spec_ids.txt", "w") as output_file:
 
 # Running the final_output.py script as a subprocess
 subprocess.run(["python", "final_output.py"])
+
+subprocess.run(["python", "remove_temp_files.py"])
