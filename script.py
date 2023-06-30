@@ -36,6 +36,37 @@ for product in bundled_product_offerings:
         if not found:
             updated_ids.append('G_' + product_id)
 
+# Looping through each file name from updated_ids
+files_to_remove = []
+for file_name in updated_ids:
+    # Building file path
+    file_path = os.path.join(directory, file_name + ".json")
+    
+    # Opening and loading JSON file
+    try:
+        with open(file_path, "r") as file:
+            file_data = json.load(file)
+            
+            # Check if file has prefix R_ and process prodSpecCharValueUse
+            if file_name.startswith("R_"):
+                prod_spec_char_value_uses = file_data["productOffering"].get("prodSpecCharValueUse", [])
+                for char_value_use in prod_spec_char_value_uses:
+                    if char_value_use.get("name") == "promotion_soc":
+                        product_spec_value = char_value_use.get("productSpecCharacteristicValue", "").strip()
+                        if product_spec_value:
+                            related_file_name = f"S_{product_spec_value}.json"
+                            related_file_path = os.path.join(directory, related_file_name)
+                            if os.path.exists(related_file_path):
+                                updated_ids.append(related_file_name.split('.json')[0])
+    except FileNotFoundError:
+        print(f"File {file_path} not found.")
+        files_to_remove.append(file_name)
+    except json.JSONDecodeError:
+        print(f"Error reading file {file_path}.")
+
+# Removing non-existent files from updated_ids.txt
+updated_ids = [item for item in updated_ids if item not in files_to_remove]
+
 # Writing the updated IDs to the updated_ids.txt file
 with open('updated_ids.txt', 'w') as file:
     for updated_id in updated_ids:
@@ -44,25 +75,32 @@ with open('updated_ids.txt', 'w') as file:
 # Set to store unique productSpecification IDs with prefix
 unique_product_spec_ids = set()
 
+# Reading additional productSpecification from the specified file
+try:
+    with open(input_file_path, "r") as currentfile:
+        current_file_data = json.load(currentfile)
+        currentdata = current_file_data["productOffering"].get("productSpecification", [])
+except FileNotFoundError:
+    print(f"File {input_file_path} not found.")
+    exit()
+except json.JSONDecodeError:
+    print(f"Error reading file {input_file_path}. Make sure it is a JSON file.")
+    exit()
+
 # Looping through each file name from updated_ids
-files_to_remove = []
 files_that_exist = set()
 for file_name in updated_ids:
     # Building file path
     file_path = os.path.join(directory, file_name + ".json")
-    
+
     # Opening and loading JSON file
-    with open(input_file_path, "r") as currentfile:
-        current_file_data = json.load(currentfile)
-        currentdata = current_file_data["productOffering"].get("productSpecification", [])
-    
     try:
         with open(file_path, "r") as file:
             file_data = json.load(file)
-            
-            # Getting the productSpecification array
+
+            # Getting the productSpecification array and adding additional data
             product_specifications = file_data["productOffering"].get("productSpecification", []) + currentdata
-            
+
             # Adding each ID with 'FTR_' prefix to the set
             for product_spec in product_specifications:
                 spec_id = product_spec.get("id", "")
@@ -71,7 +109,6 @@ for file_name in updated_ids:
             files_that_exist.add(file_name.split('_')[-1])
     except FileNotFoundError:
         print(f"File {file_path} not found.")
-        files_to_remove.append(file_name)
     except json.JSONDecodeError:
         print(f"Error reading file {file_path}.")
 
@@ -90,14 +127,6 @@ shutil.copy(input_file_path, os.path.join(directory, input_file_name + '_copy.js
 copy_file_path = os.path.join(input_file_name + '_copy.json')
 with open(copy_file_path, 'w') as file:
     json.dump(data, file, indent=2)
-
-# Removing non-existent files from updated_ids.txt
-updated_ids = [item for item in updated_ids if item not in files_to_remove]
-
-# Writing the updated IDs again to updated_ids.txt
-with open('updated_ids.txt', 'w') as file:
-    for updated_id in updated_ids:
-        file.write(updated_id + '\n')
 
 # Writing unique productSpecification IDs to a new file
 with open("product_spec_ids.txt", "w") as output_file:

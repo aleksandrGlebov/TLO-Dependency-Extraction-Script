@@ -12,6 +12,8 @@ def format_updated_id(updated_id):
         return f"\"gs://telus-kb-add-ons/{updated_id}.json\""
     elif updated_id.startswith("G_"):
         return f"\"gs://telus-kb-add-ons/{updated_id}.json\""
+    elif updated_id.startswith("S_"):
+        return f"\"gs://telus-kb-add-ons/{updated_id}.json\""
     return updated_id
 
 # Reading and formatting data from product_spec_ids.txt
