@@ -38,9 +38,5 @@ This script is designed to automate the process of extracting dependencies from 
 Execute the script by running:
 
 ```shell
-python <script_name.py>
+python <script.py>
 ```
-
-Replace `<script_name.py>` with the name of the script file.
-
----
