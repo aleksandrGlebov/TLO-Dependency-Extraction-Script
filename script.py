@@ -42,12 +42,12 @@ files_to_remove = []
 for file_name in updated_ids:
     # Building file path
     file_path = os.path.join(directory, file_name + ".json")
-    
+
     # Opening and loading JSON file
     try:
         with open(file_path, "r") as file:
             file_data = json.load(file)
-            
+
             # Check if file has prefix R_ and process prodSpecCharValueUse
             if file_name.startswith("R_"):
                 prod_spec_char_value_uses = file_data["productOffering"].get("prodSpecCharValueUse", [])
@@ -137,4 +137,5 @@ with open("product_spec_ids.txt", "w") as output_file:
 # Running the final_output.py script as a subprocess
 subprocess.run(["python", "final_output.py"])
 
+# Running the remove_temp_files.py script as a subprocess
 subprocess.run(["python", "remove_temp_files.py"])
